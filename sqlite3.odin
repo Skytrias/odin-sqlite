@@ -1,60 +1,61 @@
-package sql
+package sqlite3
 
 import "core:c"
 import "core:os"
 
+// when os.OS == "windows" do foreign import sqlite { "sqlite3.lib" }
 when os.OS == "linux" do foreign import sqlite { "sqlite3.a", "system:pthread", "system:dl" }
 
-callback :: proc"c"(data: rawptr, a: c.int, b: [^]cstring, c: [^]cstring) -> ResultCode;
+callback :: proc"c"(data: rawptr, a: c.int, b: [^]cstring, c: [^]cstring) -> ResultCode
 
 @(default_calling_convention="c", link_prefix="sqlite3_")
 foreign sqlite {
-	open :: proc(filename: cstring, ppDb: ^^sqlite3) -> ResultCode ---;
-	close :: proc(db: ^sqlite3) -> ResultCode ---;
+	open :: proc(filename: cstring, ppDb: ^^sqlite3) -> ResultCode ---
+	close :: proc(db: ^sqlite3) -> ResultCode ---
 	
-	prepare_v2 :: proc(db: ^sqlite3, zSql: ^c.char, nByte: c.int, ppStmt: ^^Stmt, pzTail: ^cstring) -> ResultCode ---;
+	prepare_v2 :: proc(db: ^sqlite3, zSql: ^c.char, nByte: c.int, ppStmt: ^^Stmt, pzTail: ^cstring) -> ResultCode ---
 	
-	step :: proc(stmt: ^Stmt) -> ResultCode ---;
-	finalize :: proc(stmt: ^Stmt) -> ResultCode ---;
+	step :: proc(stmt: ^Stmt) -> ResultCode ---
+	finalize :: proc(stmt: ^Stmt) -> ResultCode ---
 	
 	// column_text :: proc(stmt: ^Stmt, i_col: c.int) -> cstring ---;
-	column_text :: proc(stmt: ^Stmt, i_col: c.int) -> ^c.char ---;
-	column_bytes :: proc(stmt: ^Stmt, i_col: c.int) -> c.int ---;
+	column_text :: proc(stmt: ^Stmt, i_col: c.int) -> ^c.char ---
+	column_bytes :: proc(stmt: ^Stmt, i_col: c.int) -> c.int ---
 	
-	column_int :: proc(stmt: ^Stmt, i_col: c.int) -> c.int ---;
-	column_double :: proc(stmt: ^Stmt, i_col: c.int) -> c.double ---;
-	column_type :: proc(stmt: ^Stmt, i_col: c.int) -> c.int ---;
+	column_int :: proc(stmt: ^Stmt, i_col: c.int) -> c.int ---
+	column_double :: proc(stmt: ^Stmt, i_col: c.int) -> c.double ---
+	column_type :: proc(stmt: ^Stmt, i_col: c.int) -> c.int ---
 	
-	errcode :: proc(db: ^sqlite3) -> c.int ---;
-	extended_errcode :: proc(db: ^sqlite3) -> c.int ---;
-	errmsg :: proc(db: ^sqlite3) -> cstring ---;
+	errcode :: proc(db: ^sqlite3) -> c.int ---
+	extended_errcode :: proc(db: ^sqlite3) -> c.int ---
+	errmsg :: proc(db: ^sqlite3) -> cstring ---
 	// exec :: proc(db: ^sqlite3, sql: cstring, call: callback, arg: rawptr, errmsg: [^]c.char) -> ResultCode ---;
 
-	reset :: proc(stmt: ^Stmt) -> ResultCode ---;
-	clear_bindings :: proc(stmt: ^Stmt) -> ResultCode ---;
+	reset :: proc(stmt: ^Stmt) -> ResultCode ---
+	clear_bindings :: proc(stmt: ^Stmt) -> ResultCode ---
 
-	bind_int :: proc(stmt: ^Stmt, index: c.int, value: c.int) -> ResultCode ---;
+	bind_int :: proc(stmt: ^Stmt, index: c.int, value: c.int) -> ResultCode ---
 	bind_text :: proc(
 		stmt: ^Stmt, 
 		index: c.int, 
 		first: ^c.char, 
 		byte_count: int, 
 		lifetime: proc "c" (data: rawptr),
-	) -> ResultCode ---;
+	) -> ResultCode ---
 
 	trace_v2 :: proc(
 		db: ^sqlite3, 
 		mask: TraceFlags,
 		call: proc "c" (mask: TraceFlag, x, y, z: rawptr) -> c.int,
 		ctx: rawptr,
-	) -> ResultCode ---;
+	) -> ResultCode ---
 
-	sql :: proc(stmt: ^Stmt) -> cstring ---;
-	expanded_sql :: proc(stmt: ^Stmt) -> cstring ---;
+	sql :: proc(stmt: ^Stmt) -> cstring ---
+	expanded_sql :: proc(stmt: ^Stmt) -> cstring ---
 }
 
-STATIC :: uintptr(0);
-TRANSIENT :: ~uintptr(0);
+STATIC :: uintptr(0)
+TRANSIENT :: ~uintptr(0)
 
 TraceFlag :: enum u8 {
 	STMT = 0x01,
@@ -62,28 +63,28 @@ TraceFlag :: enum u8 {
 	ROW = 0x04,
 	CLOSE = 0x08,
 }
-TraceFlags :: bit_set[TraceFlag];
+TraceFlags :: bit_set[TraceFlag]
 
 // seems to be only a HANDLE
 Stmt :: struct {}
 
-LIMIT_LENGTH :: 0;
-LIMIT_SQL_LENGTH :: 1;
-LIMIT_COLUMN :: 2;
-LIMIT_EXPR_DEPTH :: 3;
-LIMIT_COMPOUND_SELECT :: 4;
-LIMIT_VDBE_OP :: 5;
-LIMIT_FUNCTION_ARG :: 6;
-LIMIT_ATTACHED :: 7;
-LIMIT_LIKE_PATTERN_LENGTH :: 8;
-LIMIT_VARIABLE_NUMBER :: 9;
-LIMIT_TRIGGER_DEPTH :: 10;
-LIMIT_WORKER_THREADS :: 11;
-N_LIMIT :: LIMIT_WORKER_THREADS + 1;
+LIMIT_LENGTH :: 0
+LIMIT_SQL_LENGTH :: 1
+LIMIT_COLUMN :: 2
+LIMIT_EXPR_DEPTH :: 3
+LIMIT_COMPOUND_SELECT :: 4
+LIMIT_VDBE_OP :: 5
+LIMIT_FUNCTION_ARG :: 6
+LIMIT_ATTACHED :: 7
+LIMIT_LIKE_PATTERN_LENGTH :: 8
+LIMIT_VARIABLE_NUMBER :: 9
+LIMIT_TRIGGER_DEPTH :: 10
+LIMIT_WORKER_THREADS :: 11
+N_LIMIT :: LIMIT_WORKER_THREADS + 1
 
 Vfs :: struct {
 	
-};
+}
 
 Vdbe :: struct {
 	

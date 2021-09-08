@@ -64,7 +64,7 @@ db_prepare_scoped :: proc(cmd: string, loc := #caller_location) -> (stmt: ^sql.S
 }
 
 db_finalize :: proc(stmt: ^sql.Stmt) {
-	db_check(sql.finalize(stmt));
+		db_check(sql.finalize(stmt));
 }
 
 // prepares sql cmd, calls the stmt, cleans up memory at end, with procedure 
