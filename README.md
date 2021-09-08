@@ -1,6 +1,8 @@
 # odin-sqlite
 Unfinished Sqlite3 bindings for [Odin](https://odin-lang.org/)
 
+Requires built static lib from the [sqlite3 Source Code](https://sqlite.org/download.html)
+
 `helpers.odin` contains my old usage code, with a global database `db`, to aid at creating SQL statements.
 
 ## Short examples using my helpers
