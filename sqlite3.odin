@@ -1,4 +1,4 @@
-package sql
+package sqlite3
 
 import "core:c"
 import "core:os"
