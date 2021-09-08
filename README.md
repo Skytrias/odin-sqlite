@@ -9,7 +9,7 @@ Unfinished Sqlite3 bindings for [Odin](https://odin-lang.org/)
 ```go
 package main
 
-import "sql" // <--- from somehwere
+import "sql" // <--- from somewhere
 
 // global
 db: ^sql.sqlite3
