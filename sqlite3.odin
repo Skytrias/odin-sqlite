@@ -17,9 +17,12 @@ foreign sqlite {
 	
 	step :: proc(stmt: ^Stmt) -> ResultCode ---
 	finalize :: proc(stmt: ^Stmt) -> ResultCode ---
+
+	last_insert_rowid :: proc(db: ^sqlite3) -> i64 ---
 	
-	// column_text :: proc(stmt: ^Stmt, i_col: c.int) -> cstring ---;
-	column_text :: proc(stmt: ^Stmt, i_col: c.int) -> ^c.char ---
+	column_name :: proc(stmt: ^Stmt, i_col: c.int) -> cstring ---
+	column_blob :: proc(stmt: ^Stmt, i_col: c.int) -> ^byte ---
+	column_text :: proc(stmt: ^Stmt, i_col: c.int) -> cstring ---
 	column_bytes :: proc(stmt: ^Stmt, i_col: c.int) -> c.int ---
 	
 	column_int :: proc(stmt: ^Stmt, i_col: c.int) -> c.int ---
@@ -35,12 +38,25 @@ foreign sqlite {
 	clear_bindings :: proc(stmt: ^Stmt) -> ResultCode ---
 
 	bind_int :: proc(stmt: ^Stmt, index: c.int, value: c.int) -> ResultCode ---
+	bind_null :: proc(stmt: ^Stmt, index: c.int) -> ResultCode ---
+	bind_int64 :: proc(stmt: ^Stmt, index: c.int, value: i64) -> ResultCode ---
+	bind_double :: proc(stmt: ^Stmt, index: c.int, value: c.double) -> ResultCode ---
+
 	bind_text :: proc(
 		stmt: ^Stmt, 
 		index: c.int, 
 		first: ^c.char, 
-		byte_count: int, 
-		lifetime: proc "c" (data: rawptr),
+		byte_count: c.int, 
+		lifetime: uintptr,
+		// lifetime: proc "c" (data: rawptr),
+	) -> ResultCode ---
+
+	bind_blob :: proc(
+		stmt: ^Stmt,
+		index: c.int,
+		first: ^byte,
+		byte_count: c.int,
+		lifetime: uintptr,
 	) -> ResultCode ---
 
 	trace_v2 :: proc(
@@ -125,7 +141,7 @@ sqlite3 :: struct {
   mallocFailed: u8,              /* True if we have seen a malloc failure */
   bBenignMalloc: u8,             /* Do not require OOMs if true */
   dfltLockMode: u8,              /* Default locking-mode for attached dbs */
-  nextAutovac: c.schar,      /* Autovac setting after VACUUM if >=0 */
+  nextAutovac: c.char,      /* Autovac setting after VACUUM if >=0 */
   suppressErr: u8,               /* Do not issue error messages if true */
   vtabOnConflict: u8,            /* Value to return for s3_vtab_on_conflict() */
   isTransactionSavepoint: u8,    /* True if the outermost savepoc.int is a TS */
