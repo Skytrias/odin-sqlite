@@ -286,10 +286,3 @@ db_insert :: proc(cmd_names: string, args: ..any) -> (err: Result_Code) {
 	db_bind_run(stmt) or_return
 	return
 }
-
-// people_insert :: proc(number: i32, name: string) -> (err: Result_Code) {
-// 	stmt := db_cache_prepare("INSERT INTO people (number) VALUES (?1)") or_return
-// 	db_bind(stmt, number) or_return
-// 	db_bind_run(stmt) or_return
-// 	return
-// }
