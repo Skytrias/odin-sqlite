@@ -5,6 +5,7 @@ import "core:os"
 
 // when os.OS == "windows" do foreign import sqlite { "sqlite3.lib" }
 when os.OS == "linux" do foreign import sqlite { "sqlite3.a", "system:pthread", "system:dl" }
+when os.OS == "darwin" do foreign import sqlite { "sqlite3.o" }
 
 callback :: proc"c"(data: rawptr, a: c.int, b: [^]cstring, c: [^]cstring) -> ResultCode
 

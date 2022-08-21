@@ -166,8 +166,8 @@ db_bind :: proc(stmt: ^Stmt, args: ..any) -> (err: Result_Code) {
 // data from the struct has to match wanted column names
 // changes the cmd string to the arg which should be a struct
 db_select :: proc(cmd_end: string, struct_arg: any, args: ..any) -> (err: Result_Code) {
-	b := strings.make_builder_len_cap(0, 128)
-	defer strings.destroy_builder(&b)
+	b := strings.builder_make_len_cap(0, 128)
+	defer strings.builder_destroy(&b)
 
 	strings.write_string(&b, "SELECT ")
 
@@ -261,8 +261,8 @@ db_any_column :: proc(stmt: ^Stmt, column_index: i32, arg: any) -> (err: Result_
 
 // auto insert INSERT INTO cmd_names VALUES (...)
 db_insert :: proc(cmd_names: string, args: ..any) -> (err: Result_Code) {
-	b := strings.make_builder_len_cap(0, 128)
-	defer strings.destroy_builder(&b)
+	b := strings.builder_make_len_cap(0, 128)
+	defer strings.builder_destroy(&b)
 
 	strings.write_string(&b, "INSERT INTO ")
 	strings.write_string(&b, cmd_names)
