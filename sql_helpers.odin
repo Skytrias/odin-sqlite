@@ -85,6 +85,7 @@ db_cache_destroy :: proc() {
 	for _, stmt in db_cache {
 		sql.finalize(stmt)
 	}
+    clear(&db_cache)
 }
 
 // simple execute -> no cache
