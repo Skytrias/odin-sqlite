@@ -1,11 +1,11 @@
-package src
+package main
 
 import "core:fmt"
 import "core:strings"
-import "core:runtime"
+import "base:runtime"
 import "core:reflect"
 import "core:mem"
-import sql "../sqlite3"
+import sql "odin-sqlite"
 
 Result_Code :: sql.ResultCode
 Stmt :: sql.Stmt
@@ -31,7 +31,7 @@ db_check :: proc(err: Result_Code, loc := #caller_location) {
 
 // does not do caching
 db_execute_simple :: proc(cmd: string) -> (err: Result_Code) {
-	data := mem.raw_string_data(cmd)
+	data := transmute([^]u8)strings.unsafe_string_to_cstring(cmd)
 	stmt: ^Stmt
 	sql.prepare_v2(db, data, i32(len(cmd)), &stmt, nil) or_return
 	db_run(stmt) or_return
@@ -72,7 +72,7 @@ db_cache_prepare :: proc(cmd: string) -> (stmt: ^Stmt, err: Result_Code) {
 	if existing_stmt := db_cache[cmd]; existing_stmt != nil {
 		stmt = existing_stmt
 	} else {
-		data := mem.raw_string_data(cmd);
+        data := transmute([^]u8)strings.unsafe_string_to_cstring(cmd)
 		sql.prepare_v2(db, data, i32(len(cmd)), &stmt, nil); 
 		db_cache[cmd] = stmt
 	}
@@ -85,6 +85,7 @@ db_cache_destroy :: proc() {
 	for _, stmt in db_cache {
 		sql.finalize(stmt)
 	}
+    clear(&db_cache)
 }
 
 // simple execute -> no cache
@@ -149,7 +150,7 @@ db_bind :: proc(stmt: ^Stmt, args: ..any) -> (err: Result_Code) {
 				text, valid := reflect.as_string(arg)
 				
 				if valid {
-					data := mem.raw_string_data(text)
+                    data := transmute([^]u8)strings.unsafe_string_to_cstring(text)
 					sql.bind_text(stmt, i32(index), data, i32(len(text)), sql.STATIC) or_return
 				} else {
 					return .ERROR
@@ -166,17 +167,17 @@ db_bind :: proc(stmt: ^Stmt, args: ..any) -> (err: Result_Code) {
 // data from the struct has to match wanted column names
 // changes the cmd string to the arg which should be a struct
 db_select :: proc(cmd_end: string, struct_arg: any, args: ..any) -> (err: Result_Code) {
-	b := strings.make_builder_len_cap(0, 128)
-	defer strings.destroy_builder(&b)
+	b := strings.builder_make_len_cap(0, 128)
+	defer strings.builder_destroy(&b)
 
 	strings.write_string(&b, "SELECT ")
 
 	ti := runtime.type_info_base(type_info_of(struct_arg.id))
 	struct_info := ti.variant.(runtime.Type_Info_Struct)
-	for name, i in struct_info.names {
+	for name, i in struct_info.names[:struct_info.field_count] {
 		strings.write_string(&b, name)
 
-		if i != len(struct_info.names) - 1 {
+		if i != int(struct_info.field_count) - 1 {
 			strings.write_byte(&b, ',')
 		} else {
 			strings.write_byte(&b, ' ')
@@ -200,7 +201,7 @@ db_select :: proc(cmd_end: string, struct_arg: any, args: ..any) -> (err: Result
 		}
 
 		// get column data per struct field
-		for i in 0..<len(struct_info.names) {
+		for i in 0..<int(struct_info.field_count) {
 			type := struct_info.types[i].id
 			offset := struct_info.offsets[i]
 			struct_value := any { rawptr(uintptr(struct_arg.data) + offset), type }
@@ -261,8 +262,8 @@ db_any_column :: proc(stmt: ^Stmt, column_index: i32, arg: any) -> (err: Result_
 
 // auto insert INSERT INTO cmd_names VALUES (...)
 db_insert :: proc(cmd_names: string, args: ..any) -> (err: Result_Code) {
-	b := strings.make_builder_len_cap(0, 128)
-	defer strings.destroy_builder(&b)
+	b := strings.builder_make_len_cap(0, 128)
+	defer strings.builder_destroy(&b)
 
 	strings.write_string(&b, "INSERT INTO ")
 	strings.write_string(&b, cmd_names)
